@@ -8,16 +8,20 @@ import java.awt.Image;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.net.URL;
+import java.util.ArrayList;
 
 public class StartingClass extends Applet implements Runnable, KeyListener {
 
+	static final long BLAST_TIME = 1500;
+	private long ctrlPressed = 0, ctrlReleased = 0;
 	private Robot robot;
 	private Image image, currentSprite, character, characterDown,
-			characterJumped, background, heliboy;
+			characterJumped, background, heliboy, blastImage;
 	private Graphics second;
 	private Heliboy hb1, hb2;
 	private URL base;
 	private static Background bg1, bg2;
+	private boolean isCharging = false;
 
 	@Override
 	public void init() {
@@ -41,6 +45,7 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 		currentSprite = character;
 		background = getImage(base, "data/background.png");
 		heliboy = getImage(base, "data/heliboy.png");
+		blastImage = getImage(base, "data/blast.png");
 	}
 
 	@Override
@@ -50,7 +55,7 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 		robot = new Robot();
 		hb1 = new Heliboy(340, 360);
 		hb2 = new Heliboy(700, 360);
-	
+
 		Thread thread = new Thread(this);
 		thread.start();
 	}
@@ -74,6 +79,17 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 			} else if (robot.isJumped() == false && robot.isDucked() == false) {
 				currentSprite = character;
 			}
+
+			ArrayList<Projectile> projectiles = robot.getProjectiles();
+			for (int i = 0; i < projectiles.size(); i++) {
+				Projectile p = projectiles.get(i);
+				if (p.isVisible() == true) {
+					p.update();
+				} else {
+					projectiles.remove(i);
+				}
+			}
+
 			hb1.update();
 			hb2.update();
 			bg1.update();
@@ -105,8 +121,47 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 
 	@Override
 	public void paint(Graphics g) {
+		ArrayList<Projectile> projectiles;
+		Projectile p;
+		int x = 0, y = 0, yMod = 0;
+		double chargeMeter = (double) (System.currentTimeMillis() - ctrlPressed) / (double) BLAST_TIME;
+		System.out.println( " charge " + chargeMeter);
 		g.drawImage(background, bg1.getBgX(), bg1.getBgY(), this);
 		g.drawImage(background, bg2.getBgX(), bg2.getBgY(), this);
+
+		projectiles = robot.getProjectiles();
+		for (int i = 0; i < projectiles.size(); i++) {
+			p = projectiles.get(i);
+			if (p.isBlast()) {
+				g.setColor(Color.YELLOW);
+
+				g.fillOval(p.getX(), p.getY(), 50, 50);
+			} else  {
+				g.setColor(Color.YELLOW);
+				g.fillRect(p.getX(), p.getY(), 10, 5);
+			}
+
+		}
+		
+		if (isCharging) {
+
+			if (chargeMeter < .25) {
+				x = 10;
+				y = 10;
+				yMod = 15;
+			} else if (chargeMeter > .25 && chargeMeter < .75) {
+				x = 25;
+				y = 25;
+				yMod = 5;
+			} else if (chargeMeter >= 1.0) {
+				x = 50;
+				y = 50;
+				yMod = 0;
+			}
+			g.setColor(Color.YELLOW);
+
+			g.fillOval(robot.getCenterX() + 65, robot.getCenterY() + yMod - 50, x, y);
+		}
 		g.drawImage(currentSprite, robot.getCenterX() - 61,
 				robot.getCenterY() - 63, this);
 		g.drawImage(heliboy, hb1.getCenterX() - 48, hb1.getCenterY() - 48, this);
@@ -144,6 +199,15 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 			robot.jump();
 			break;
 
+		case KeyEvent.VK_CONTROL:
+			if (robot.isDucked() == false && robot.isJumped() == false) {
+				if (!isCharging) {
+					ctrlPressed = System.currentTimeMillis();
+					isCharging = true;
+				}
+			}
+			break;
+
 		}
 
 	}
@@ -169,6 +233,24 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 			break;
 
 		case KeyEvent.VK_SPACE:
+			break;
+
+		case KeyEvent.VK_CONTROL:
+			if (robot.isDucked() == false && robot.isJumped() == false) {
+
+				isCharging = false;
+				ctrlReleased = System.currentTimeMillis();
+				if ((ctrlReleased - ctrlPressed) > BLAST_TIME) {
+					System.out.println("BOOM");
+					robot.blast();
+				} else {
+
+					robot.shoot();
+				}
+
+				ctrlReleased = ctrlPressed = 0;
+
+			}
 			break;
 
 		}

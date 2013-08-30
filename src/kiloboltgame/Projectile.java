@@ -3,14 +3,14 @@ package kiloboltgame;
 public class Projectile {
 	static final int BULLET_SPEED = 7;
 	private int x, y, speedX;
-	private boolean visible;
+	private boolean visible, isBlast;
 	
-	public Projectile(int startX, int startY) {
-		x = startX;
-		y = startY;
-		speedX = BULLET_SPEED;
-		visible = true;
-		
+	public Projectile(int startX, int startY, int speedX, boolean isBlast) {
+		x = startX; 
+		y = startY; 
+		this.speedX = speedX; 
+		visible = true; 
+		this.isBlast = isBlast;
 	}
 	
 	/**
@@ -57,6 +57,14 @@ public class Projectile {
 
 	public static int getBulletSpeed() {
 		return BULLET_SPEED;
+	}
+
+	public boolean isBlast() {
+		return isBlast;
+	}
+
+	public void setBlast(boolean isBlast) {
+		this.isBlast = isBlast;
 	}
 	
 	

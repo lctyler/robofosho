@@ -68,7 +68,12 @@ public class Robot {
 	}
 
 	public void shoot() {
-		Projectile p = new Projectile(centerX + 50, centerY - 25);
+		Projectile p = new Projectile(centerX + 50, centerY - 25, 7, false);
+		this.projectiles.add(p);
+	}
+	
+	public void blast() {
+		Projectile p = new Projectile(centerX + 65, centerY - 50, 3,  true);
 		this.projectiles.add(p);
 	}
 	
@@ -176,6 +181,14 @@ public class Robot {
 
 	public boolean isMovingLeft() {
 		return movingLeft;
+	}
+
+	public ArrayList<Projectile> getProjectiles() {
+		return projectiles;
+	}
+
+	public void setProjectiles(ArrayList<Projectile> projectiles) {
+		this.projectiles = projectiles;
 	}
 
 	public void setMovingLeft(boolean movingLeft) {
