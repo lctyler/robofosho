@@ -1,5 +1,6 @@
 package kiloboltgame;
 
+import kiloboltgame.framework.Animation;
 import java.applet.Applet;
 import java.awt.Color;
 import java.awt.Frame;
@@ -15,13 +16,15 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 	static final long BLAST_TIME = 1500;
 	private long ctrlPressed = 0, ctrlReleased = 0;
 	private Robot robot;
-	private Image image, currentSprite, character, characterDown,
-			characterJumped, background, heliboy, blastImage;
+	private Image image, currentSprite, character, character2, character3,
+			characterDown, characterJumped, background, heliboy, heliboy2,
+			heliboy3, heliboy4, heliboy5;
 	private Graphics second;
 	private Heliboy hb1, hb2;
 	private URL base;
 	private static Background bg1, bg2;
-	private boolean isCharging = false;
+	private boolean isCharging = false, isWalking = false;
+	private Animation anim, hanim;
 
 	@Override
 	public void init() {
@@ -39,13 +42,40 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 		}
 
 		// Image Setups
-		character = getImage(base, "data/character.png");
+		character = getImage(base, "data/characterStill.png");
+		character2 = getImage(base, "data/characterWalking2.png");
+		//character3 = getImage(base, "data/characterWalking.png");
+
 		characterDown = getImage(base, "data/down.png");
 		characterJumped = getImage(base, "data/jumped.png");
-		currentSprite = character;
-		background = getImage(base, "data/background.png");
+
 		heliboy = getImage(base, "data/heliboy.png");
-		blastImage = getImage(base, "data/blast.png");
+		heliboy2 = getImage(base, "data/heliboy2.png");
+		heliboy3 = getImage(base, "data/heliboy3.png");
+		heliboy4 = getImage(base, "data/heliboy4.png");
+		heliboy5 = getImage(base, "data/heliboy5.png");
+
+		background = getImage(base, "data/background.png");
+
+		anim = new Animation();
+		anim.addFrame(character, 1250);
+		anim.addFrame(character2, 1250);
+		//anim.addFrame(character3, 1250);
+		//anim.addFrame(character2, 1250);
+		//anim.addFrame(character, 1250);
+
+		hanim = new Animation();
+		hanim.addFrame(heliboy, 100);
+		hanim.addFrame(heliboy2, 100);
+		hanim.addFrame(heliboy3, 100);
+		hanim.addFrame(heliboy4, 100);
+		hanim.addFrame(heliboy5, 100);
+		hanim.addFrame(heliboy4, 100);
+		hanim.addFrame(heliboy3, 100);
+		hanim.addFrame(heliboy2, 100);
+
+		currentSprite = anim.getImage();
+
 	}
 
 	@Override
@@ -70,6 +100,13 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 		// TODO Auto-generated method stub
 	}
 
+	public void animate() {
+		if (isWalking)
+			anim.update(100);
+
+		hanim.update(50);
+	}
+
 	@Override
 	public void run() {
 		while (true) {
@@ -77,7 +114,7 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 			if (robot.isJumped()) {
 				currentSprite = characterJumped;
 			} else if (robot.isJumped() == false && robot.isDucked() == false) {
-				currentSprite = character;
+				currentSprite = anim.getImage();
 			}
 
 			ArrayList<Projectile> projectiles = robot.getProjectiles();
@@ -94,7 +131,10 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 			hb2.update();
 			bg1.update();
 			bg2.update();
+
+			animate();
 			repaint();
+
 			try {
 				Thread.sleep(17);
 			} catch (InterruptedException e) {
@@ -124,8 +164,9 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 		ArrayList<Projectile> projectiles;
 		Projectile p;
 		int x = 0, y = 0, yMod = 0;
-		double chargeMeter = (double) (System.currentTimeMillis() - ctrlPressed) / (double) BLAST_TIME;
-		System.out.println( " charge " + chargeMeter);
+		double chargeMeter = (double) (System.currentTimeMillis() - ctrlPressed)
+				/ (double) BLAST_TIME;
+		System.out.println(" charge " + chargeMeter);
 		g.drawImage(background, bg1.getBgX(), bg1.getBgY(), this);
 		g.drawImage(background, bg2.getBgX(), bg2.getBgY(), this);
 
@@ -136,13 +177,13 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 				g.setColor(Color.YELLOW);
 
 				g.fillOval(p.getX(), p.getY(), 50, 50);
-			} else  {
+			} else {
 				g.setColor(Color.YELLOW);
 				g.fillRect(p.getX(), p.getY(), 10, 5);
 			}
 
 		}
-		
+
 		if (isCharging) {
 
 			if (chargeMeter < .25) {
@@ -160,12 +201,14 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 			}
 			g.setColor(Color.YELLOW);
 
-			g.fillOval(robot.getCenterX() + 65, robot.getCenterY() + yMod - 50, x, y);
+			g.fillOval(robot.getCenterX() + 85, robot.getCenterY() + yMod, x, y);
 		}
 		g.drawImage(currentSprite, robot.getCenterX() - 61,
 				robot.getCenterY() - 63, this);
-		g.drawImage(heliboy, hb1.getCenterX() - 48, hb1.getCenterY() - 48, this);
-		g.drawImage(heliboy, hb2.getCenterX() - 48, hb2.getCenterY() - 48, this);
+		g.drawImage(hanim.getImage(), hb1.getCenterX() - 48,
+				hb1.getCenterY() - 48, this);
+		g.drawImage(hanim.getImage(), hb2.getCenterX() - 48,
+				hb2.getCenterY() - 48, this);
 
 	}
 
@@ -177,13 +220,13 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 			System.out.println("Move up");
 			break;
 
-		case KeyEvent.VK_DOWN:
+		/*case KeyEvent.VK_DOWN:
 			currentSprite = characterDown;
 			if (robot.isJumped() == false) {
 				robot.setDucked(true);
 				robot.setSpeedX(0);
 			}
-			break;
+			break; */
 
 		case KeyEvent.VK_LEFT:
 			robot.moveLeft();
@@ -191,6 +234,7 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 			break;
 
 		case KeyEvent.VK_RIGHT:
+			isWalking = true;
 			robot.moveRight();
 			robot.setMovingRight(true);
 			break;
@@ -219,16 +263,17 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 			System.out.println("Stop moving up");
 			break;
 
-		case KeyEvent.VK_DOWN:
-			currentSprite = character;
+		/* case KeyEvent.VK_DOWN:
+			//currentSprite = anim.getImage();
 			robot.setDucked(false);
-			break;
+			break; */
 
 		case KeyEvent.VK_LEFT:
 			robot.stopLeft();
 			break;
 
 		case KeyEvent.VK_RIGHT:
+			isWalking = false;
 			robot.stopRight();
 			break;
 

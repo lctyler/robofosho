@@ -7,7 +7,7 @@ public class Robot {
 	// Constants are Here
 	final int JUMPSPEED = -15;
 	final int MOVESPEED = 5;
-	final int GROUND = 382;
+	final int GROUND = 334;
 	
 	private ArrayList<Projectile> projectiles = new ArrayList<Projectile>();
 	private int centerX = 100;
@@ -68,12 +68,12 @@ public class Robot {
 	}
 
 	public void shoot() {
-		Projectile p = new Projectile(centerX + 50, centerY - 25, 7, false);
+		Projectile p = new Projectile(centerX + 75, centerY + 25 , 7, false);
 		this.projectiles.add(p);
 	}
 	
 	public void blast() {
-		Projectile p = new Projectile(centerX + 65, centerY - 50, 3,  true);
+		Projectile p = new Projectile(centerX + 90, centerY + 10 , 3,  true);
 		this.projectiles.add(p);
 	}
 	
