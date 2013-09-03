@@ -8,22 +8,29 @@ public class Robot {
 	final int JUMPSPEED = -15;
 	final int MOVESPEED = 5;
 	final int GROUND = 334;
-	
+
 	private ArrayList<Projectile> projectiles = new ArrayList<Projectile>();
 	private int centerX = 100;
 	private int centerY = GROUND;
-	private boolean jumped = false;
+	private boolean jumped = false, jetPack = false;
 	private boolean movingLeft = false;
 	private boolean movingRight = false;
 	private boolean ducked = false;
-
+	private static double jumpMeter = 0;
 	private int speedX = 0;
 	private int speedY = 1;
-	
+
+	public static double getJumpMeter() {
+		return jumpMeter;
+	}
+
+	public static void setJumpMeter(double jumpMeter) {
+		Robot.jumpMeter = jumpMeter;
+	}
+
 	private Background bg1 = StartingClass.getBg1();
 	private Background bg2 = StartingClass.getBg2();
-	
-	
+
 	public void update() {
 		// Moves Character or Scrolls Background accordingly.
 
@@ -38,9 +45,9 @@ public class Robot {
 		if (centerX <= 200 && speedX > 0) {
 			centerX += speedX;
 		}
-		if (speedX > 0 && centerX > 200){
-			bg1.setSpeedX(-MOVESPEED);
-			bg2.setSpeedX(-MOVESPEED);
+		if (speedX > 0 && centerX > 200) {
+			bg1.setSpeedX(-MOVESPEED / 5);
+			bg2.setSpeedX(-MOVESPEED / 5);
 		}
 
 		// Updates Y Position
@@ -50,13 +57,14 @@ public class Robot {
 		}
 
 		// Handles Jumping
-		if (jumped == true) {
+		if (jumped == true || jetPack == false) {
 			speedY += 1;
 
 			if (centerY + speedY >= GROUND) {
 				centerY = GROUND;
 				speedY = 0;
 				jumped = false;
+				jetPack = false;
 			}
 
 		}
@@ -67,17 +75,24 @@ public class Robot {
 		}
 	}
 
+	public boolean isJetPack() {
+		return jetPack;
+	}
+
+	public void setJetPack(boolean jetPack) {
+		this.jetPack = jetPack;
+	}
+
 	public void shoot() {
-		Projectile p = new Projectile(centerX + 75, centerY + 25 , 7, false);
+		Projectile p = new Projectile(centerX + 75, centerY + 25, 7, false);
 		this.projectiles.add(p);
 	}
-	
+
 	public void blast() {
-		Projectile p = new Projectile(centerX + 90, centerY + 10 , 3,  true);
+		Projectile p = new Projectile(centerX + 90, centerY + 10, 3, true);
 		this.projectiles.add(p);
 	}
-	
-	
+
 	public void moveRight() {
 		if (ducked == false) {
 			speedX = MOVESPEED;
@@ -120,6 +135,24 @@ public class Robot {
 			speedY = JUMPSPEED;
 			jumped = true;
 		}
+
+	}
+   // FIX ME
+	public void jumpPack() {
+	 if (jetPack = false)
+		jumpMeter += 0.01;
+		if (jumpMeter >= 0 && jumpMeter <= 0.25) {
+			System.out.println("wat");
+			if (speedY > -5)
+				speedY += -1;
+			jetPack = true;
+		}
+		else {
+			this.jetPack = false;
+			jumpMeter = 0;
+		
+	 }
+		
 
 	}
 
@@ -195,5 +228,4 @@ public class Robot {
 		this.movingLeft = movingLeft;
 	}
 
-	
 }

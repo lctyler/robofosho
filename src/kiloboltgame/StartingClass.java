@@ -1,6 +1,5 @@
 package kiloboltgame;
 
-import kiloboltgame.framework.Animation;
 import java.applet.Applet;
 import java.awt.Color;
 import java.awt.Frame;
@@ -8,13 +7,19 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+
+import kiloboltgame.framework.Animation;
 
 public class StartingClass extends Applet implements Runnable, KeyListener {
 
 	static final long BLAST_TIME = 1500;
-	private long ctrlPressed = 0, ctrlReleased = 0;
+	private long ctrlPressed = 0, ctrlReleased = 0, spPressed = 0,
+			spReleased = 0, currentTime = 0;
 	private Robot robot;
 	private Image image, currentSprite, character, character2, character3,
 			characterDown, characterJumped, background, heliboy, heliboy2,
@@ -23,8 +28,12 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 	private Heliboy hb1, hb2;
 	private URL base;
 	private static Background bg1, bg2;
-	private boolean isCharging = false, isWalking = false;
+	private boolean isCharging = false, isWalking = false, rocketSpace = false,
+			rocketTimer = false, jumpDisabled = false;
 	private Animation anim, hanim;
+	public static Image tilegrassTop, tilegrassBot, tilegrassLeft,
+			tilegrassRight, tiledirt;
+	private ArrayList<Tile> tilearray = new ArrayList<Tile>();
 
 	@Override
 	public void init() {
@@ -44,7 +53,7 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 		// Image Setups
 		character = getImage(base, "data/characterStill.png");
 		character2 = getImage(base, "data/characterWalking2.png");
-		//character3 = getImage(base, "data/characterWalking.png");
+		// character3 = getImage(base, "data/characterWalking.png");
 
 		characterDown = getImage(base, "data/down.png");
 		characterJumped = getImage(base, "data/jumped.png");
@@ -57,12 +66,18 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 
 		background = getImage(base, "data/background.png");
 
+		tiledirt = getImage(base, "data/tiledirt.png");
+		tilegrassTop = getImage(base, "data/tilegrasstop.png");
+		tilegrassBot = getImage(base, "data/tilegrassbot.png");
+		tilegrassLeft = getImage(base, "data/tilegrassleft.png");
+		tilegrassRight = getImage(base, "data/tilegrassright.png");
+
 		anim = new Animation();
 		anim.addFrame(character, 1250);
 		anim.addFrame(character2, 1250);
-		//anim.addFrame(character3, 1250);
-		//anim.addFrame(character2, 1250);
-		//anim.addFrame(character, 1250);
+		// anim.addFrame(character3, 1250);
+		// anim.addFrame(character2, 1250);
+		// anim.addFrame(character, 1250);
 
 		hanim = new Animation();
 		hanim.addFrame(heliboy, 100);
@@ -82,12 +97,64 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 	public void start() {
 		bg1 = new Background(0, 0);
 		bg2 = new Background(2160, 0);
+
+		// Paints the tiles over the background
+
+		try {
+			loadMap("data/map1.txt");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		robot = new Robot();
 		hb1 = new Heliboy(340, 360);
 		hb2 = new Heliboy(700, 360);
 
 		Thread thread = new Thread(this);
 		thread.start();
+	}
+
+	private void loadMap(String filename) throws IOException {
+		ArrayList lines = new ArrayList();
+		int width = 0;
+		int height = 0;
+
+		BufferedReader reader = new BufferedReader(new FileReader(filename));
+		String line = null;
+		while ((line = reader.readLine()) != null) {
+			if (!line.startsWith("!")) {
+				lines.add(line);
+				width = Math.max(width, line.length());
+			}
+		}
+		reader.close();
+
+		/*
+		 * while (true) { String line = reader.readLine(); // no more lines to
+		 * read if (line == null) { reader.close(); break; }
+		 * 
+		 * if (!line.startsWith("!")) { lines.add(line); width = Math.max(width,
+		 * line.length());
+		 * 
+		 * } }
+		 */
+		height = lines.size();
+
+		for (int j = 0; j < 12; j++) {
+			line = (String) lines.get(j);
+			for (int i = 0; i < width; i++) {
+				System.out.println(i + "is i ");
+
+				if (i < line.length()) {
+					char ch = line.charAt(i);
+					Tile t = new Tile(i, j, Character.getNumericValue(ch));
+					tilearray.add(t);
+				}
+
+			}
+		}
+
 	}
 
 	@Override
@@ -101,7 +168,7 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 	}
 
 	public void animate() {
-		if (isWalking)
+		if (isWalking && robot.isJumped() != true && robot.isJetPack() != true)
 			anim.update(100);
 
 		hanim.update(50);
@@ -111,6 +178,7 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 	public void run() {
 		while (true) {
 			robot.update();
+			System.out.println(robot.getCenterY());
 			if (robot.isJumped()) {
 				currentSprite = characterJumped;
 			} else if (robot.isJumped() == false && robot.isDucked() == false) {
@@ -126,7 +194,7 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 					projectiles.remove(i);
 				}
 			}
-
+			updateTiles();
 			hb1.update();
 			hb2.update();
 			bg1.update();
@@ -140,6 +208,7 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+
 		}
 	}
 
@@ -166,9 +235,10 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 		int x = 0, y = 0, yMod = 0;
 		double chargeMeter = (double) (System.currentTimeMillis() - ctrlPressed)
 				/ (double) BLAST_TIME;
-		System.out.println(" charge " + chargeMeter);
+		// System.out.println(" charge " + chargeMeter);
 		g.drawImage(background, bg1.getBgX(), bg1.getBgY(), this);
 		g.drawImage(background, bg2.getBgX(), bg2.getBgY(), this);
+		paintTiles(g);
 
 		projectiles = robot.getProjectiles();
 		for (int i = 0; i < projectiles.size(); i++) {
@@ -212,21 +282,37 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 
 	}
 
+	private void updateTiles() {
+
+		for (int i = 0; i < tilearray.size(); i++) {
+			Tile t = (Tile) tilearray.get(i);
+			t.update();
+		}
+
+	}
+
+	private void paintTiles(Graphics g) {
+		for (int i = 0; i < tilearray.size(); i++) {
+			Tile t = (Tile) tilearray.get(i);
+			g.drawImage(t.getTileImage(), t.getTileX(), t.getTileY(), this);
+		}
+	}
+
 	@Override
 	public void keyPressed(KeyEvent e) {
 
 		switch (e.getKeyCode()) {
 		case KeyEvent.VK_UP:
-			System.out.println("Move up");
+			rocketSpace = true;
+			if (robot.isJetPack())
+				robot.jumpPack();
 			break;
 
-		/*case KeyEvent.VK_DOWN:
-			currentSprite = characterDown;
-			if (robot.isJumped() == false) {
-				robot.setDucked(true);
-				robot.setSpeedX(0);
-			}
-			break; */
+		/*
+		 * case KeyEvent.VK_DOWN: currentSprite = characterDown; if
+		 * (robot.isJumped() == false) { robot.setDucked(true);
+		 * robot.setSpeedX(0); } break;
+		 */
 
 		case KeyEvent.VK_LEFT:
 			robot.moveLeft();
@@ -239,8 +325,14 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 			robot.setMovingRight(true);
 			break;
 
+		case KeyEvent.VK_SHIFT:
+
+			break;
+
 		case KeyEvent.VK_SPACE:
+
 			robot.jump();
+
 			break;
 
 		case KeyEvent.VK_CONTROL:
@@ -260,13 +352,20 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 	public void keyReleased(KeyEvent e) {
 		switch (e.getKeyCode()) {
 		case KeyEvent.VK_UP:
-			System.out.println("Stop moving up");
+			robot.setJetPack(true);
+			rocketSpace = false;
+			//robot.setSpeedY(1);
+			//Robot.setJumpMeter(0);
 			break;
 
-		/* case KeyEvent.VK_DOWN:
-			//currentSprite = anim.getImage();
-			robot.setDucked(false);
-			break; */
+		/*
+		 * case KeyEvent.VK_DOWN: //currentSprite = anim.getImage();
+		 * robot.setDucked(false); break;
+		 */
+
+		case KeyEvent.VK_SHIFT:
+
+			break;
 
 		case KeyEvent.VK_LEFT:
 			robot.stopLeft();
@@ -278,6 +377,8 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 			break;
 
 		case KeyEvent.VK_SPACE:
+			jumpDisabled = false;
+			spReleased = System.currentTimeMillis();
 			break;
 
 		case KeyEvent.VK_CONTROL:
