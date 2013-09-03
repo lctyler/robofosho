@@ -23,7 +23,7 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 	private Robot robot;
 	private Image image, currentSprite, character, character2, character3,
 			characterDown, characterJumped, background, heliboy, heliboy2,
-			heliboy3, heliboy4, heliboy5;
+			heliboy3, heliboy4, heliboy5, characterJumpPack;
 	private Graphics second;
 	private Heliboy hb1, hb2;
 	private URL base;
@@ -57,6 +57,7 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 
 		characterDown = getImage(base, "data/down.png");
 		characterJumped = getImage(base, "data/jumped.png");
+		characterJumpPack = getImage(base, "data/characterJumpPack.png");
 
 		heliboy = getImage(base, "data/heliboy.png");
 		heliboy2 = getImage(base, "data/heliboy2.png");
@@ -178,12 +179,16 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 	public void run() {
 		while (true) {
 			robot.update();
-			System.out.println(robot.getCenterY());
+			System.out.println(robot.getCenterY() + " speed " + robot.getSpeedY());
 			if (robot.isJumped()) {
 				currentSprite = characterJumped;
-			} else if (robot.isJumped() == false && robot.isDucked() == false) {
+			} else if (robot.isJetPack()) {
+				currentSprite = characterJumpPack;
+			}
+			else if (robot.isJumped() == false && robot.isDucked() == false) {
 				currentSprite = anim.getImage();
 			}
+			
 
 			ArrayList<Projectile> projectiles = robot.getProjectiles();
 			for (int i = 0; i < projectiles.size(); i++) {
@@ -304,7 +309,8 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 		switch (e.getKeyCode()) {
 		case KeyEvent.VK_UP:
 			rocketSpace = true;
-			if (robot.isJetPack())
+			//robot.setJetPack(true);
+			if (!robot.isFalling())
 				robot.jumpPack();
 			break;
 
@@ -352,9 +358,10 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 	public void keyReleased(KeyEvent e) {
 		switch (e.getKeyCode()) {
 		case KeyEvent.VK_UP:
-			robot.setJetPack(true);
+			robot.setJetPack(false);
+			robot.setIsFalling(true);
 			rocketSpace = false;
-			//robot.setSpeedY(1);
+			//robot.setSpeedY(20);
 			//Robot.setJumpMeter(0);
 			break;
 

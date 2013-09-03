@@ -12,13 +12,17 @@ public class Robot {
 	private ArrayList<Projectile> projectiles = new ArrayList<Projectile>();
 	private int centerX = 100;
 	private int centerY = GROUND;
-	private boolean jumped = false, jetPack = false;
+	private boolean jumped = false, jetPack = false, isFalling = false;
 	private boolean movingLeft = false;
 	private boolean movingRight = false;
 	private boolean ducked = false;
 	private static double jumpMeter = 0;
 	private int speedX = 0;
 	private int speedY = 1;
+
+	public void setIsFalling(boolean input) {
+		isFalling = input;
+	}
 
 	public static double getJumpMeter() {
 		return jumpMeter;
@@ -57,14 +61,14 @@ public class Robot {
 		}
 
 		// Handles Jumping
-		if (jumped == true || jetPack == false) {
+		if (jumped == true || isFalling == true) {
 			speedY += 1;
 
 			if (centerY + speedY >= GROUND) {
 				centerY = GROUND;
 				speedY = 0;
 				jumped = false;
-				jetPack = false;
+				isFalling = false;
 			}
 
 		}
@@ -137,22 +141,31 @@ public class Robot {
 		}
 
 	}
-   // FIX ME
+
+	public boolean isFalling() {
+		return isFalling;
+	}
+
+	public void setFalling(boolean isFalling) {
+		this.isFalling = isFalling;
+	}
+
+	// FIX ME
 	public void jumpPack() {
-	 if (jetPack = false)
-		jumpMeter += 0.01;
-		if (jumpMeter >= 0 && jumpMeter <= 0.25) {
-			System.out.println("wat");
-			if (speedY > -5)
-				speedY += -1;
+		if (!isFalling) {
+			jumpMeter += 0.01;
+			if (jumpMeter >= 0 && jumpMeter <= 0.35) {
+				//System.out.println("wat and speed is "  + speedY);
+				if (speedY > -5)
+					speedY += -1;
 			jetPack = true;
+			} else {
+				this.jetPack = false;
+				jumpMeter = 0;
+				isFalling = true;
+
+			}
 		}
-		else {
-			this.jetPack = false;
-			jumpMeter = 0;
-		
-	 }
-		
 
 	}
 
